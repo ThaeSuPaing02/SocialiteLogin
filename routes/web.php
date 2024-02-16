@@ -1,9 +1,12 @@
 <?php
-
-use App\Http\Controllers\ProfileController;
-use Illuminate\Foundation\Application;
-use Illuminate\Support\Facades\Route;
+use App\Models\User;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Foundation\Application;
+use Laravel\Socialite\Facades\Socialite;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Auth\ProviderController;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,6 +18,10 @@ use Inertia\Inertia;
 | contains the "web" middleware group. Now create something great!
 |
 */
+
+Route::get('/auth/{provider}/redirect', [ProviderController::class,'redirect']);
+ 
+Route::get('/auth/{provider}/callback', [ProviderController::class,'callback']);
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
