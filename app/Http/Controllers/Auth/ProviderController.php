@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
 
 class ProviderController extends Controller
@@ -13,7 +15,19 @@ class ProviderController extends Controller
     }
     
     public function callback($provider){
-        $user = Socialite::driver($provider)->user();
-        dd($user);
+        $SocialUser = Socialite::driver($provider)->user();
+        $user = User::updateOrCreate([
+            'provider_id' => $SocialUser->id,
+            'provider' => $provider
+        ], [
+            'name' => $SocialUser->name,
+            'username' => $SocialUser->nickname,
+            'email' => $SocialUser->email,
+            'provier_token' => $SocialUser->token,
+        ]);
+     
+        Auth::login($user);
+     
+        return redirect('/dashboard');
     }
 }
