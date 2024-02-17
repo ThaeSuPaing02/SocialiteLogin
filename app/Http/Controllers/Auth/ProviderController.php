@@ -15,19 +15,33 @@ class ProviderController extends Controller
     }
     
     public function callback($provider){
-        $SocialUser = Socialite::driver($provider)->user();
-        $user = User::updateOrCreate([
-            'provider_id' => $SocialUser->id,
-            'provider' => $provider
-        ], [
-            'name' => $SocialUser->name,
-            'username' => $SocialUser->nickname,
-            'email' => $SocialUser->email,
-            'provier_token' => $SocialUser->token,
-        ]);
-     
+        try{
+            $SocialUser = Socialite::driver($provider)->user();
+            if(User::where('email',$SocialUser->getEmail())->exists()){
+                return redirect('/login')->withErrors(['email'=>'This email uses different method to login.']);
+            }
+            $user = User::where([
+                'provider'=>$provider,
+                'provider_id'=>$SocialUser->id
+            ])->first();
+            if(!$user){
+                $user = User::create([
+                    'name'=>$SocialUser->getName(),
+                    'email'=>$SocialUser->getEmail(),
+                    'username'=> User::generateUserName($SocialUser->getNickname()),
+                    'privider'=>$provider,
+                    'provider_id'=>$SocialUser->getId(),
+                    'provider_token'=>$SocialUser->token,
+                    'email_verified_at'=>now()
+                ]);
+            }
+
         Auth::login($user);
-     
         return redirect('/dashboard');
+
+        } catch(\Exception $e){
+            return redirect('/login');
+        }
+        
     }
 }
